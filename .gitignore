@@ -1,0 +1,5 @@
+dataset/
+pretrained_model/
+task1/experiments
+task2/experiments
+__pycache__
