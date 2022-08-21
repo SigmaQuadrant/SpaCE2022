@@ -52,8 +52,9 @@ def train(train_loader, dev_loader, model, optimizer, scheduler, model_dir):
         if (patience_counter >= config.patience_num and epoch > config.min_epoch_num) or epoch == config.epoch:
             logging.info('Best f1: {}'.format(best_f1))
             break
-        logging.info('Training Finished!')
-        # logging.info('patience_counter: {}'.format(patience_counter))
+
+    logging.info('Training Finished!')
+     # logging.info('patience_counter: {}'.format(patience_counter))
 
 
 def score_f1(A, B):
@@ -80,6 +81,7 @@ def evaluate(dev_loader, model):
 
             batch_data, batch_label = batch_sample
             batch_mask = batch_data.gt(0)
+
             outputs = model(batch_data, batch_mask, labels=batch_label)
             dev_loss += outputs['loss'].item()
 

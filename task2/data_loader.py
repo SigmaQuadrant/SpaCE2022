@@ -16,9 +16,8 @@ from torch.utils.data import DataLoader
 # subtask3
 class SpaceDataset(Dataset):
 
-    def __init__(self, file_path, config, test_flag=False):
-        self.mode = test_flag
-
+    def __init__(self, file_path, config, mode: str):
+        self.mode = mode # ['train'/'dev'/'test']
         self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
         self.device = config.device
         self.subtask = config.subtask
@@ -43,7 +42,7 @@ class SpaceDataset(Dataset):
                         labels.extend([role2['idxes'][0], role2['idxes'][-1]])
 
                     tokens = self.tokenizer.convert_tokens_to_ids(list(text))
-                    if self.mode:
+                    if self.mode == 'test':
                         data.append([tokens])
                     else:
                         data.append([tokens, labels])
@@ -52,7 +51,7 @@ class SpaceDataset(Dataset):
 
     def __getitem__(self, idx):
         tokens = self.dataset[idx][0]
-        if self.mode:
+        if self.mode == 'test':
             return [tokens]
         else:
             label = self.dataset[idx][1]
@@ -68,7 +67,7 @@ class SpaceDataset(Dataset):
             batch_data = pad_sequence([torch.from_numpy(np.array(s)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
             batch_data = torch.as_tensor(batch_data, dtype=torch.long).to(self.device)
 
-            if self.mode:
+            if self.mode == 'test':
                 return [batch_data]
 
             else:
@@ -85,6 +84,11 @@ class SpaceDataset(Dataset):
 
                 # setting 2: choose all the spans
                 # setting 3: separate into two parts
+            #else:
+            #    labels = [x[1] for x in batch]
+            #    batch_label = torch.as_tensor(labels, dtype=torch.long).to(self.device)
+            #    return [batch_data, batch_label]
+
 
 
 if __name__ == '__main__':

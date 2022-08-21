@@ -61,6 +61,6 @@ def split():
 
 
 if __name__ == '__main__':
-    # sample()
-    split()
+    sample()
+    # split()
 

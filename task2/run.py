@@ -1,7 +1,7 @@
 import config
 import logging
 
-from utils import set_logger
+from utils import set_logger, set_seed
 from data_loader import SpaceDataset
 from torch.utils.data import DataLoader
 from model import DebertaReader
@@ -12,8 +12,9 @@ from train import train
 def run():
     set_logger()
     logging.info('device: {}'.format(config.device))
-    train_dataset = SpaceDataset(config.train_dir, config)
-    dev_dataset = SpaceDataset(config.dev_dir, config)
+    set_seed(config.seed)
+    train_dataset = SpaceDataset(config.train_dir, config, mode='train')
+    dev_dataset = SpaceDataset(config.dev_dir, config, mode='dev')
     logging.info('Dataset Bulid!')
 
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size,
