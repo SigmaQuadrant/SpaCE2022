@@ -2,6 +2,9 @@ import logging
 import os
 from config import model_dir, log_dir
 
+import numpy.random
+import torch.cuda
+import random
 
 def set_logger():
     logger = logging.getLogger()
@@ -18,3 +21,10 @@ def set_logger():
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(logging.Formatter('%(message)s'))
         logger.addHandler(stream_handler)
+
+
+def set_seed(seed):
+    torch.cuda.manual_seed(seed)
+    torch.manual_seed(seed)
+    random.seed(seed)
+    numpy.random.seed(seed)
