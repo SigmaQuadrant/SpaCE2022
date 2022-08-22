@@ -29,24 +29,41 @@ class SpaceDataset(Dataset):
             data = []
             with open(file_path, "r") as fr:
                 for item in jsonlines.Reader(fr):
-
-                    text = item['context']
-                    reasons = item['reasons']
-                    labels = []  # store start/end postion
-
+                    text, reasons, labels = item['context'], item['reasons'], []
                     for reason in reasons:
                         fragment = reason['fragments']
                         # choose the first span
                         role1, role2 = fragment[0], fragment[1]
                         labels.extend([role1['idxes'][0], role1['idxes'][-1]])
                         labels.extend([role2['idxes'][0], role2['idxes'][-1]])
-
                     tokens = self.tokenizer.convert_tokens_to_ids(list(text))
                     if self.mode == 'test':
                         data.append([tokens])
                     else:
                         data.append([tokens, labels])
+            return data
 
+        elif self.subtask == 'subtask3':
+            data = []
+            with open(file_path, 'r') as fr:
+                for item in jsonlines.Reader(fr):
+                    text, reasons, labels = item['context'], item['reasons'], []
+                    for reason in reasons:
+                        fragment = reason['fragments']
+                        answer = [-1] * 6
+                        for element in fragment:
+                            if element['role'] == 'S':
+                                answer[0], answer[1] = element['idxes'][0], element['idxes'][-1]
+                            elif element['role'] == 'P':
+                                answer[2], answer[3] = element['idxes'][0], element['idxes'][-1]
+                            elif element['role'] == 'E':
+                                answer[4], answer[5] = element['idxes'][0], element['idxes'][-1]
+                        labels.extend(answer)
+                    tokens = self.tokenizer.convert_tokens_to_ids(list(text))
+                    if self.mode == 'test':
+                        data.append([tokens])
+                    else:
+                        data.append([tokens, labels])
             return data
 
     def __getitem__(self, idx):
@@ -62,15 +79,12 @@ class SpaceDataset(Dataset):
 
     def collate_fn(self, batch):
         if self.subtask == 'subtask1':
-
             sentence = [x[0] for x in batch]
             batch_data = pad_sequence([torch.from_numpy(np.array(s)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
             batch_data = torch.as_tensor(batch_data, dtype=torch.long).to(self.device)
-
             if self.mode == 'test':
                 return [batch_data]
-
-            else:
+            elif self.mode == 'train':
                 # setting 1: choose the shorter span
                 labels = [x[1] for x in batch]
                 for idx, label in enumerate(labels):
@@ -84,31 +98,58 @@ class SpaceDataset(Dataset):
 
                 # setting 2: choose all the spans
                 # setting 3: separate into two parts
-            #else:
-            #    labels = [x[1] for x in batch]
-            #    batch_label = torch.as_tensor(labels, dtype=torch.long).to(self.device)
-            #    return [batch_data, batch_label]
+            else:
+                 # save all the label
+                 labels = [x[1] for x in batch]
+                 batch_label = pad_sequence([torch.from_numpy(np.array(s)) for s in labels], batch_first=True, padding_value=-1)
+                 batch_label = torch.as_tensor(batch_label, dtype=torch.long).to(self.device)
+                 return [batch_data, batch_label]
 
+        # TODO
+        elif self.subtask == 'subtask3':
+            sentence = [x[0] for x in batch]
+            batch_data = pad_sequence([torch.from_numpy(np.array(s)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
+            batch_data = torch.as_tensor(batch_data, dtype=torch.long).to(self.device)
+            if self.mode == 'test':
+                return [batch_data]
+            elif self.mode == 'train':
+                labels = [x[1] for x in batch]
+                for idx, label in enumerate(labels):
+                    if len(label) > 6:
+                        labels[idx] = label[0:6]
+                batch_label = torch.as_tensor(labels, dtype=torch.long).to(self.device)
+                return [batch_data, batch_label]
+            else:
+                labels = [x[1] for x in batch]
+                batch_label = pad_sequence([torch.from_numpy(np.array(s)) for s in labels], batch_first=True, padding_value=-2)
+                batch_label = torch.as_tensor(batch_label, dtype=torch.long).to(self.device)
+                return [batch_data, batch_label]
 
 
 if __name__ == '__main__':
-    file_path = config.train_dir
-    dataset = SpaceDataset(file_path, config, test_flag=False)
-    qa_model = DebertaReader.from_pretrained(config.bert_model)
+    train_dataset = SpaceDataset(config.train_dir, config, 'train')
+    dev_dataset = SpaceDataset(config.dev_dir, config, 'dev')
+    # qa_model = DebertaReader.from_pretrained(config.bert_model)
     # qa_model.to(torch.device('cuda'))
-    train_loader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=dataset.collate_fn)
+
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
+    dev_loader = DataLoader(dev_dataset, batch_size=4, shuffle=False, collate_fn=dev_dataset.collate_fn)
+
     for idx, sample in enumerate(train_loader):
 
         batch_data, batch_label = sample
         batch_mask = batch_data.gt(0)
-        len_s = batch_data.size(1)
-        span_idx = torch.max(batch_label)
-        if span_idx >= len_s:
-            print(idx)
-            print(batch_data.size(1))
-            print(batch_label)
-            break
+        print(idx, batch_data.shape, batch_label.shape)
 
+    for idx, sample in enumerate(dev_loader):
+
+        batch_data, batch_label = sample
+        batch_mask = batch_data.gt(0)
+        print(idx, batch_data.shape, batch_label.shape)
+        if batch_label.size(1) == 8:
+            print(batch_label)
+
+    '''
     count = 0
     with open(file_path, "r") as fr:
         for item in jsonlines.Reader(fr):
@@ -125,4 +166,5 @@ if __name__ == '__main__':
                 result2 = tokenizers.convert_tokens_to_ids(list(text))
                 print(result2)
                 print(len(result2))
-
+    
+    '''

@@ -3,11 +3,12 @@ import torch
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--subtask', type=str, default='subtask1')
+parser.add_argument('--subtask', type=str, default='subtask3')
 parser.add_argument('--model', type=str, default='chinese-deberta-large')
-parser.add_argument('--lr', type=float, default=1e-5)
-parser.add_argument('--batch_size', type=int, default=16)
+parser.add_argument('--lr', type=float, default=2e-5)
+parser.add_argument('--batch_size', type=int, default=12)
 parser.add_argument('--seed', type=int, default=42)
+parser.add_argument('--weight_decay', type=float, default=0.01)
 arguments = parser.parse_args().__dict__
 
 data_dir = '../dataset'
@@ -15,11 +16,11 @@ json_dir = '/json'
 jsonl_dir = '/jsonl'
 subtask = arguments['subtask']
 
-original_dir = data_dir + jsonl_dir + '/task2_train.jsonl'
-subtask_dir = data_dir + jsonl_dir + '/' + subtask + '/task2.jsonl'
+original_dir = data_dir + jsonl_dir + '/task2_dev.jsonl'
+subtask_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_dev.jsonl'
 train_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_train.jsonl'
 dev_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_dev.jsonl'
-test_dir = data_dir + jsonl_dir + '/' + subtask + '/task2-splited-test.jsonl'
+test_dir = data_dir + jsonl_dir + '/' + subtask + '/task2-test.jsonl'
 
 bert_model_dir = '../pretrained_model/'
 bert_model_name = arguments['model']
@@ -30,7 +31,7 @@ bert_cased = True
 device = torch.device('cuda')
 
 learning_rate = arguments['lr']
-weight_decay = 0.01
+weight_decay = arguments['weight_decay']
 clip_grad = 5
 seed = arguments['seed']
 
@@ -40,7 +41,7 @@ patience = 0.0002
 patience_num = 5
 min_epoch_num = 5
 
-model_dir = './experiments/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed)
+model_dir = './experiments/' + subtask + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed)
 log_dir = model_dir + '/train.log'
 prediction_dir = model_dir + '/prediction.jsonl'
 
@@ -49,3 +50,4 @@ if __name__ == '__main__':
     print(train_dir)
     print(subtask)
     print(type(subtask))
+    print(model_dir)

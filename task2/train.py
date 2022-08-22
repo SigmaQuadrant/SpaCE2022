@@ -82,7 +82,7 @@ def evaluate(dev_loader, model):
             batch_data, batch_label = batch_sample
             batch_mask = batch_data.gt(0)
 
-            outputs = model(batch_data, batch_mask, labels=batch_label)
+            outputs = model(batch_data, batch_mask, labels=batch_label[:, :4])
             dev_loss += outputs['loss'].item()
 
             # how to decode
@@ -93,8 +93,18 @@ def evaluate(dev_loader, model):
             postion = torch.cat((A_start, A_end, B_start, B_end), dim=-1)
             sum_P, sum_R, sum_F1 = 0.0, 0.0, 0.0
             for B in range(batch_data.size(0)):
-                p, r, f1 = score_f1(postion[B], batch_label[B])
-                sum_P , sum_R, sum_F1 = sum_P + p, sum_R + r, sum_F1 + f1
+                if len(batch_label[B]) == 4 or sum(batch_label[B][4:8] == -1).item() == 4:
+                    p, r, f1 = score_f1(postion[B], batch_label[B][0:4])
+                    sum_P , sum_R, sum_F1 = sum_P + p, sum_R + r, sum_F1 + f1
+                else:
+                    # choose the best span
+                    p1, r1, f1 = score_f1(postion[B], batch_label[B][0:4])
+                    p2, r2, f2 = score_f1(postion[B], batch_label[B][4:8])
+                    if f1 > f2:
+                        sum_P, sum_R, sum_F1 = sum_P + p1, sum_R + r1, sum_F1 + f1
+                    else:
+                        sum_P, sum_R, sum_F1 = sum_P + p2, sum_R + r2, sum_F1 + f2
+
             sum_P = sum_P / batch_data.size(0)
             sum_R = sum_R / batch_data.size(0)
             sum_F1 = sum_F1 / batch_data.size(0)

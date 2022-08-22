@@ -2,16 +2,20 @@ import torch
 import json
 import jsonlines
 import numpy as np
-from transformers import BertTokenizer
+from transformers import BertTokenizer, MBart50Tokenizer
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import config
+
 
 class SpaceDataset(Dataset):
 
     def __init__(self, file_path, config, test_flag=False):
         self.mode = test_flag
-        self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
+        if 'mbart' in config.bert_model:
+            self.tokenizer = MBart50Tokenizer.from_pretrained(config.bert_model, src_lang='zh_CN', tgt_lang='zh_CN')
+        else:
+            self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
         self.dataset = self.preprocess(file_path)
         self.device = config.device
 

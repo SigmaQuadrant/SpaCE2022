@@ -4,7 +4,7 @@ import logging
 from utils import set_logger, set_seed
 from data_loader import SpaceDataset
 from torch.utils.data import DataLoader
-from transformers import BertForSequenceClassification, ElectraForSequenceClassification
+from transformers import BertForSequenceClassification, ElectraForSequenceClassification, BartForSequenceClassification, MBartForSequenceClassification
 from transformers.optimization import AdamW, get_cosine_schedule_with_warmup
 from train import train
 
@@ -28,6 +28,10 @@ def run():
 
     if 'electra' in config.bert_model_name:
         model = ElectraForSequenceClassification.from_pretrained(config.bert_model, num_labels=2)
+    elif 'mbart' in config.bert_model_name:
+        model = MBartForSequenceClassification.from_pretrained(config.bert_model, num_labels=2)
+    elif 'bart' in config.bert_model_name:
+        model = BartForSequenceClassification.from_pretrained(config.bert_model, num_labels=2)
     else:
         model = BertForSequenceClassification.from_pretrained(config.bert_model, num_labels=2)
 

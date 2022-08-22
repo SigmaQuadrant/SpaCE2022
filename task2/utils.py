@@ -1,12 +1,10 @@
 import logging
 import os
-import random
+from config import model_dir, log_dir
 
 import numpy.random
 import torch.cuda
-
-from config import model_dir, log_dir
-
+import random
 
 def set_logger():
     logger = logging.getLogger()

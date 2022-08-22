@@ -10,6 +10,7 @@ parser.add_argument('--model', type=str, default='chinese-wwm-ext')
 parser.add_argument('--lr', type=float, default=1e-5)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--seed', type=int, default=42)
+parser.add_argument('--weight_decay', type=float, default=0.01)
 arguments = parser.parse_args().__dict__
 
 data_dir = '../dataset'
@@ -27,7 +28,7 @@ bert_model_name = arguments['model']
 bert_model = bert_model_dir + bert_model_name
 
 learning_rate = arguments['lr']
-weight_decay = 0.01
+weight_decay = arguments['weight_decay']
 clip_grad = 5
 seed = arguments['seed']
 
