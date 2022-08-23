@@ -4,7 +4,7 @@ import logging
 from utils import set_logger, set_seed
 from data_loader import SpaceDataset
 from torch.utils.data import DataLoader
-from model import DebertaReader
+from model import DebertaReaderfortask1, DebertaReaderfortask3
 from transformers.optimization import AdamW, get_cosine_schedule_with_warmup
 from train import train
 
@@ -22,7 +22,11 @@ def run():
     dev_loader = DataLoader(dev_dataset, batch_size=config.batch_size,
                             shuffle=config.shuffle, collate_fn=dev_dataset.collate_fn)
     logging.info('Get DataLoader!')
-    model = DebertaReader.from_pretrained(config.bert_model)
+    if config.subtask == 'subtask1':
+        model = DebertaReaderfortask1.from_pretrained(config.bert_model)
+    elif config.subtask == 'subtask3':
+        model = DebertaReaderfortask3.from_pretrained(config.bert_model)
+
     model.to(config.device)
     logging.info('Load Model Form {}'.format(config.bert_model))
 

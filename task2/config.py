@@ -16,8 +16,8 @@ json_dir = '/json'
 jsonl_dir = '/jsonl'
 subtask = arguments['subtask']
 
-original_dir = data_dir + jsonl_dir + '/task2_dev.jsonl'
-subtask_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_dev.jsonl'
+original_dir = data_dir + jsonl_dir + '/task2_train.jsonl'
+subtask_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_train.jsonl'
 train_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_train.jsonl'
 dev_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_dev.jsonl'
 test_dir = data_dir + jsonl_dir + '/' + subtask + '/task2-test.jsonl'
@@ -51,3 +51,4 @@ if __name__ == '__main__':
     print(subtask)
     print(type(subtask))
     print(model_dir)
+    print(log_dir)

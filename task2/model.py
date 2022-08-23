@@ -8,9 +8,16 @@ class DebertaReader(DebertaPreTrainedModel):
 
     def __init__(self, config):
         super().__init__(config)
-        self.num_labels = config.num_labels
+        # self.num_labels = config.num_labels
         self.deberta = DebertaModel(config)
-        self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
+        # self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
+
+
+class DebertaReaderfortask1(DebertaReader):
+    def __init__(self, config):
+        super().__init__(config)
+        self.num_labels = 4
+        self.qa_outputs = nn.Linear(config.hidden_size, 4)
 
     def forward(
         self,
@@ -65,6 +72,66 @@ class DebertaReader(DebertaPreTrainedModel):
         }
 
 
+class DebertaReaderfortask3(DebertaReader):
+    def __init__(self, config):
+        super().__init__(config)
+        self.num_labels = 6
+        self.qa_outputs = nn.Linear(config.hidden_size, 6)
+
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        position_ids=None,
+        inputs_embeds=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        labels=None,
+    ):
+        outputs = self.deberta(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            inputs_embeds=inputs_embeds,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+        )
+
+        sequence_output = outputs[0]
+        logits = self.qa_outputs(sequence_output)
+
+        # return logits
+        # S_start, S_end, P_start, P_end, E_start, E_end
+        # logits: [bsz, len_s, 6]
+        # label : [bsz, 6]
+        # assert(logits.size(-1) == labels.size(-1))
+
+
+        total_loss = None
+        if labels is not None:
+
+            loss = CrossEntropyLoss()
+            S_start = loss(logits[:, :, 0], labels[:, 0])
+            S_end = loss(logits[:, :, 1], labels[:, 1])
+            P_start = loss(logits[:, :, 2], labels[:, 2])
+            P_end = loss(logits[:, :, 3], labels[:, 3])
+            E_start = loss(logits[:, :, 4], labels[:, 4])
+            E_end = loss(logits[:, :, 5], labels[:, 5])
+            total_loss = (S_start + S_end + P_start + P_end + E_start + E_end) / 6
+
+        return {
+            "loss": total_loss,
+            "S_start_logits": logits[:, :, 0],
+            "S_end_logits": logits[:, :, 1],
+            "P_start_logits": logits[:, :, 2],
+            "P_end_logits": logits[:, :, 3],
+            "E_start_logits": logits[:, :, 4],
+            "E_end_logits": logits[:, :, 5]
+        }
+
+
 if __name__ == '__main__':
-    qa_model = DebertaReader.from_pretrained('../pretrained_model/chinese-deberta-large')
+    qa_model = DebertaReaderfortask1.from_pretrained('../pretrained_model/chinese-deberta-large')
     # qa_model.to(torch.device())

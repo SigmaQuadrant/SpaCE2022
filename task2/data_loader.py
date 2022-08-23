@@ -8,7 +8,6 @@ from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
 import config
 # test the model
-from model import DebertaReader
 from torch.utils.data import DataLoader
 
 # subtask1 1005 train 
@@ -44,26 +43,31 @@ class SpaceDataset(Dataset):
             return data
 
         elif self.subtask == 'subtask3':
+            # [CLS] w1 w2 ... wn
             data = []
             with open(file_path, 'r') as fr:
                 for item in jsonlines.Reader(fr):
                     text, reasons, labels = item['context'], item['reasons'], []
                     for reason in reasons:
                         fragment = reason['fragments']
-                        answer = [-1] * 6
+                        answer = [0] * 6
                         for element in fragment:
                             if element['role'] == 'S':
-                                answer[0], answer[1] = element['idxes'][0], element['idxes'][-1]
+                                element['idxes'].sort()
+                                answer[0], answer[1] = element['idxes'][0] + 1, element['idxes'][-1] + 1
                             elif element['role'] == 'P':
-                                answer[2], answer[3] = element['idxes'][0], element['idxes'][-1]
+                                element['idxes'].sort()
+                                answer[2], answer[3] = element['idxes'][0] + 1, element['idxes'][-1] + 1
                             elif element['role'] == 'E':
-                                answer[4], answer[5] = element['idxes'][0], element['idxes'][-1]
+                                element['idxes'].sort()
+                                answer[4], answer[5] = element['idxes'][0] + 1, element['idxes'][-1] + 1
                         labels.extend(answer)
                     tokens = self.tokenizer.convert_tokens_to_ids(list(text))
+                    CLS = [self.tokenizer.cls_token_id]
                     if self.mode == 'test':
-                        data.append([tokens])
+                        data.append([CLS + tokens])
                     else:
-                        data.append([tokens, labels])
+                        data.append([CLS + tokens, labels])
             return data
 
     def __getitem__(self, idx):
@@ -121,7 +125,7 @@ class SpaceDataset(Dataset):
                 return [batch_data, batch_label]
             else:
                 labels = [x[1] for x in batch]
-                batch_label = pad_sequence([torch.from_numpy(np.array(s)) for s in labels], batch_first=True, padding_value=-2)
+                batch_label = pad_sequence([torch.from_numpy(np.array(s)) for s in labels], batch_first=True, padding_value=-1)
                 batch_label = torch.as_tensor(batch_label, dtype=torch.long).to(self.device)
                 return [batch_data, batch_label]
 
@@ -129,8 +133,6 @@ class SpaceDataset(Dataset):
 if __name__ == '__main__':
     train_dataset = SpaceDataset(config.train_dir, config, 'train')
     dev_dataset = SpaceDataset(config.dev_dir, config, 'dev')
-    # qa_model = DebertaReader.from_pretrained(config.bert_model)
-    # qa_model.to(torch.device('cuda'))
 
     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
     dev_loader = DataLoader(dev_dataset, batch_size=4, shuffle=False, collate_fn=dev_dataset.collate_fn)
@@ -139,32 +141,22 @@ if __name__ == '__main__':
 
         batch_data, batch_label = sample
         batch_mask = batch_data.gt(0)
-        print(idx, batch_data.shape, batch_label.shape)
+        # print(idx, batch_data.shape, batch_label.shape)
 
     for idx, sample in enumerate(dev_loader):
 
         batch_data, batch_label = sample
         batch_mask = batch_data.gt(0)
-        print(idx, batch_data.shape, batch_label.shape)
-        if batch_label.size(1) == 8:
-            print(batch_label)
+        # print(idx, batch_data.shape, batch_label.shape)
+        for B in range(batch_data.size(0)):
+            block = len(batch_label[B])//6
+            for b in range(block):
+                label = batch_label[B][6*b:6*(b+1)]
+                if label[2] > label[3]:
+                    print(label[2], label[3])
+                    print(idx)
+                assert (label[0].item() <= label[1].item())
+                assert (label[2].item() <= label[3].item())
+                assert (label[4].item() <= label[5].item())
+        # print(batch_data, batch_label)
 
-    '''
-    count = 0
-    with open(file_path, "r") as fr:
-        for item in jsonlines.Reader(fr):
-            count += 1
-            if count == 389:
-                text = item['context']
-                # print(text)
-                # print(list(text))
-                tokenizers = BertTokenizer.from_pretrained(config.bert_model)
-                # print(text)
-                result1 = tokenizers.encode(text)
-                print(result1)
-                print(len(result1))
-                result2 = tokenizers.convert_tokens_to_ids(list(text))
-                print(result2)
-                print(len(result2))
-    
-    '''
