@@ -6,7 +6,7 @@ from transformers import BertTokenizer, MBart50Tokenizer
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import config
-
+from torch.utils.data import DataLoader
 
 class SpaceDataset(Dataset):
 
@@ -58,21 +58,7 @@ class SpaceDataset(Dataset):
 if __name__ == '__main__':
 
     file_path = '../dataset/jsonl/task1_train.jsonl'
-    Dataset = SpaceDataset(file_path, config, test_flag=False)
-    print(Dataset.__len__())
-
-    '''
-    calculate the length of sentence
-    the max lenght of all the sentence is 252
-    
-    length = []
-    for len_s in Dataset.dataset:
-        length.append(len(len_s[0]) + 1)
-    print(max(length)) 
-    '''
-
-    batch = Dataset.dataset[0:5]
-    # print(batch.gt(0))
-    print(Dataset.collate_fn(batch))
-
-
+    dataset = SpaceDataset(file_path, config, test_flag=False)
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=dataset.collate_fn)
+    for idx, (data, label) in enumerate(dataloader):
+        print(data.shape, label.shape)

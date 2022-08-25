@@ -42,7 +42,10 @@ def train(train_loader, dev_loader, model, optimizer, scheduler, model_dir):
             val_metrics = evaluate_task3(dev_loader, model)
 
         val_f1 = val_metrics['F1']
-        logging.info('Epoch: {}, Train_loss: {:6f}, F1: {:.6f}'.format(epoch, train_loss, val_f1))
+        precision = val_metrics['precision']
+        recall = val_metrics['recall']
+        logging.info('Epoch: {}, Train_loss: {:6f}, Precision: {:.6f}, Recall: {:.6f}, F1: {:.6f},'.format(
+            epoch, train_loss, precision, recall, val_f1))
 
         if val_f1 > best_f1:
             model.save_pretrained(model_dir)
@@ -57,7 +60,6 @@ def train(train_loader, dev_loader, model, optimizer, scheduler, model_dir):
         if (patience_counter >= config.patience_num and epoch > config.min_epoch_num) or epoch == config.epoch:
             logging.info('Best f1: {}'.format(best_f1))
             break
-
     logging.info('Training Finished!')
 
 # score_f1 don't consider the role, the result will be higher
@@ -78,22 +80,20 @@ def cal_f1(A_l, A_r, B_l, B_r):
 
 
 def score_f1(A, B, subtask):
+    if A[0] > A[1]:
+        A[0], A[1] = A[1], A[0]
+    if A[2] > A[3]:
+        A[2], A[3] = A[3], A[2]
+
     if subtask == 1:
-        if A[1] < A[0] or A[3] < A[2]:
-            return 0.0, 0.0, 0.0
-        _A = set([i for i in range(A[0], A[1] + 1)] + [i for i in range(A[2], A[3] + 1)])
-        _B = set([i for i in range(B[0], B[1] + 1)] + [i for i in range(B[2], B[3] + 1)])
-        _intersection = _A & _B
-        precision = len(_intersection) / len(_A)
-        recall = len(_intersection) / len(_B)
-        if precision == 0.0 or recall == 0.0:
-            f1 = 0.0
-        else:
-            f1 = 2 * precision * recall / (precision + recall)
-        return precision, recall, f1
+
+        p1, r1, f1 = cal_f1(A[0], A[1], B[0], B[1])
+        p2, r2, f2 = cal_f1(A[2], A[3], B[2], B[3])
+        return (p1 + p2) / 2, (r1 + r2) / 2, (f1 + f2) / 2
+
     elif subtask == 3:
-        if A[1] < A[0] or A[3] < A[2] or A[5] < A[4]:
-            return 0.0, 0.0, 0.0
+        if A[4] > A[5]:
+            A[4], A[5] = A[5], A[4]
         sum_p, sum_r, sum_f1 = 0.0, 0.0, 0.0
         count = 0
         if B[0] > 0 and B[1] > 0:

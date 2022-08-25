@@ -9,6 +9,7 @@ parser.add_argument('--lr', type=float, default=2e-5)
 parser.add_argument('--batch_size', type=int, default=12)
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--weight_decay', type=float, default=0.01)
+parser.add_argument('--tmp', type=bool, default=False)
 arguments = parser.parse_args().__dict__
 
 data_dir = '../dataset'
@@ -41,7 +42,11 @@ patience = 0.0002
 patience_num = 5
 min_epoch_num = 5
 
-model_dir = './experiments/' + subtask + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed)
+tmp = arguments['tmp']
+if tmp:
+    model_dir = './experiments/' + subtask + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed) + 'tmp'
+else:
+    model_dir = './experiments/' + subtask + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed)
 log_dir = model_dir + '/train.log'
 prediction_dir = model_dir + '/prediction.jsonl'
 

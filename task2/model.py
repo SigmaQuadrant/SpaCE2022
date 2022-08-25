@@ -1,4 +1,5 @@
 from transformers import DebertaPreTrainedModel, DebertaModel
+from transformers import ElectraPreTrainedModel, ElectraModel
 import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss
