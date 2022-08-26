@@ -64,10 +64,6 @@ class SpaceDataset(Dataset):
                         for reason in reasons:
                             fragment = reason['fragments']
                             role1, role2 = fragment[0], fragment[1]
-                            # role1['idxes'].sort()
-                            # role2['idxes'].sort()
-                            # labels.extend(filter(role1['idxes']))
-                            # labels.extend(filter(role2['idxes']))
                             labels.extend([role1['idxes'][0], role1['idxes'][-1]])
                             labels.extend([role2['idxes'][0], role2['idxes'][-1]])
                         data.append([tokens, labels])
@@ -76,10 +72,9 @@ class SpaceDataset(Dataset):
                     elif self.mode == 'dev':
                         for reason in reasons:
                             fragment = reason['fragments']
-                            # choose the first span
                             role1, role2 = fragment[0], fragment[1]
-                            labels.extend([role1['idxes'][0], role1['idxes'][-1]])
-                            labels.extend([role2['idxes'][0], role2['idxes'][-1]])
+                            labels.append(role1['idxes'])
+                            labels.append(role2['idxes'])
                         data.append([tokens, labels])
             return data
 
@@ -89,12 +84,12 @@ class SpaceDataset(Dataset):
             with open(file_path, 'r') as fr:
                 for item in jsonlines.Reader(fr):
                     text, reasons, labels = item['context'], item['reasons'], []
-                    answer = [0] * 6
                     tokens = self.tokenizer.convert_tokens_to_ids(list(text))
                     CLS = [self.tokenizer.cls_token_id]
                     if self.mode == 'test':
                         data.append([CLS + tokens])
                     elif self.mode == 'train':
+                        answer = [0] * 6
                         for reason in reasons:
                             fragment = reason['fragments']
                             for element in fragment:
@@ -115,16 +110,20 @@ class SpaceDataset(Dataset):
                     elif self.mode == 'dev':
                         for reason in reasons:
                             fragment = reason['fragments']
+                            answer = [[], [], []]
                             for element in fragment:
                                 if element['role'] == 'S':
-                                    element['idxes'].sort()
-                                    answer[0], answer[1] = element['idxes'][0] + 1, element['idxes'][-1] + 1
+                                    answer[0] = element['idxes']
+                                    for id, val in enumerate(answer[0]):
+                                        answer[0][id] = val + 1
                                 elif element['role'] == 'P':
-                                    element['idxes'].sort()
-                                    answer[2], answer[3] = element['idxes'][0] + 1, element['idxes'][-1] + 1
+                                    answer[1] = element['idxes']
+                                    for id, val in enumerate(answer[1]):
+                                        answer[1][id] = val + 1
                                 elif element['role'] == 'E':
-                                    element['idxes'].sort()
-                                    answer[4], answer[5] = element['idxes'][0] + 1, element['idxes'][-1] + 1
+                                    answer[2] = element['idxes']
+                                    for id, val in enumerate(answer[2]):
+                                        answer[2][id] = val + 1
                             labels.extend(answer)
                         data.append([CLS + tokens, labels])
             return data
@@ -162,11 +161,8 @@ class SpaceDataset(Dataset):
                 # setting 2: choose all the spans
                 # setting 3: separate into two parts
             else:
-                 # save all the label
                  labels = [x[1] for x in batch]
-                 batch_label = pad_sequence([torch.from_numpy(np.array(s)) for s in labels], batch_first=True, padding_value=-1)
-                 batch_label = torch.as_tensor(batch_label, dtype=torch.long).to(self.device)
-                 return [batch_data, batch_label]
+                 return [batch_data, labels]
 
         # TODO
         elif self.subtask == 'subtask3':
@@ -184,9 +180,7 @@ class SpaceDataset(Dataset):
                 return [batch_data, batch_label]
             else:
                 labels = [x[1] for x in batch]
-                batch_label = pad_sequence([torch.from_numpy(np.array(s)) for s in labels], batch_first=True, padding_value=-1)
-                batch_label = torch.as_tensor(batch_label, dtype=torch.long).to(self.device)
-                return [batch_data, batch_label]
+                return [batch_data, labels]
 
 
 if __name__ == '__main__':
@@ -197,7 +191,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
     dev_loader = DataLoader(dev_dataset, batch_size=4, shuffle=False, collate_fn=dev_dataset.collate_fn)
 
-    for idx, sample in enumerate(dev_loader):
+    for idx, sample in enumerate(train_loader):
         if idx == 6:
             break
         batch_data, batch_label = sample
@@ -205,11 +199,11 @@ if __name__ == '__main__':
         print(idx, batch_data.shape, batch_label.shape)
         print(batch_label)
 
-    '''
-    a = [1, 3, 4, 5]
-    b = [2, 3, 4, 5]
-    c = [45, 46, 47]
-    d = [1, 2, 4, 5]
-    e = [1, 2, 5, 6]
-    print(filter(a), filter(b), filter(c), filter(d), filter(e))
-    '''
+    for idx, sample in enumerate(dev_loader):
+        if idx == 6:
+            break
+        batch_data, batch_label = sample
+        batch_mask = batch_data.gt(0)
+        # print(idx, batch_data.shape, batch_label)
+        print(batch_label)
+

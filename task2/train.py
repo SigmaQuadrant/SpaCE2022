@@ -65,10 +65,9 @@ def train(train_loader, dev_loader, model, optimizer, scheduler, model_dir):
 # score_f1 don't consider the role, the result will be higher
 
 
-def cal_f1(A_l, A_r, B_l, B_r):
-    # print(A_l, A_r, B_l, B_r)
+def cal_f1(A_l, A_r, B):
     _A = set([i for i in range(A_l, A_r + 1)])
-    _B = set([i for i in range(B_l, B_r + 1)])
+    _B = set(B)
     _intersection = _A & _B
     precision = len(_intersection) / len(_A)
     recall = len(_intersection) / len(_B)
@@ -86,24 +85,28 @@ def score_f1(A, B, subtask):
         A[2], A[3] = A[3], A[2]
 
     if subtask == 1:
-
-        p1, r1, f1 = cal_f1(A[0], A[1], B[0], B[1])
-        p2, r2, f2 = cal_f1(A[2], A[3], B[2], B[3])
+        print(A[0], A[1], B[0])
+        print(A[2], A[3], B[1])
+        p1, r1, f1 = cal_f1(A[0], A[1], B[0])
+        p2, r2, f2 = cal_f1(A[2], A[3], B[1])
         return (p1 + p2) / 2, (r1 + r2) / 2, (f1 + f2) / 2
 
     elif subtask == 3:
         if A[4] > A[5]:
             A[4], A[5] = A[5], A[4]
+        print(A[0], A[1], B[0])
+        print(A[2], A[3], B[1])
+        print(A[4], A[5], B[2])
         sum_p, sum_r, sum_f1 = 0.0, 0.0, 0.0
         count = 0
-        if B[0] > 0 and B[1] > 0:
-            p, r, f1 = cal_f1(A[0], A[1], B[0], B[1])
+        if B[0]:
+            p, r, f1 = cal_f1(A[0], A[1], B[0])
             sum_p, sum_r, sum_f1, count = sum_p + p, sum_r + r, sum_f1 + f1, count + 1
-        if B[2] > 0 and B[3] > 0:
-            p, r, f1 = cal_f1(A[2], A[3], B[2], B[3])
+        if B[1]:
+            p, r, f1 = cal_f1(A[2], A[3], B[1])
             sum_p, sum_r, sum_f1, count = sum_p + p, sum_r + r, sum_f1 + f1, count + 1
-        if B[4] > 0 and B[5] > 0:
-            p, r, f1 = cal_f1(A[4], A[5], B[4], B[5])
+        if B[2]:
+            p, r, f1 = cal_f1(A[4], A[5], B[2])
             sum_p, sum_r, sum_f1, count = sum_p + p, sum_r + r, sum_f1 + f1, count + 1
         return sum_p/count, sum_r/count, sum_f1/count
 
@@ -124,17 +127,14 @@ def evaluate_task1(dev_loader, model):
             postion = torch.cat((A_start, A_end, B_start, B_end), dim=-1)
             sum_P, sum_R, sum_F1 = 0.0, 0.0, 0.0
             for B in range(batch_data.size(0)):
-                if len(batch_label[B]) == 4 or sum(batch_label[B][4:8] == -1).item() == 4:
-                    p, r, f1 = score_f1(postion[B], batch_label[B][0:4], subtask=1)
-                    sum_P , sum_R, sum_F1 = sum_P + p, sum_R + r, sum_F1 + f1
-                else:
-                    # choose the best span
-                    p1, r1, f1 = score_f1(postion[B], batch_label[B][0:4], subtask=1)
-                    p2, r2, f2 = score_f1(postion[B], batch_label[B][4:8], subtask=1)
-                    if f1 > f2:
-                        sum_P, sum_R, sum_F1 = sum_P + p1, sum_R + r1, sum_F1 + f1
-                    else:
-                        sum_P, sum_R, sum_F1 = sum_P + p2, sum_R + r2, sum_F1 + f2
+                maxp, maxr, maxf1 = 0.0, 0.0, 0.0
+                blocks = len(batch_label[B]) // 2
+                label = batch_label[B]
+                for b in range(blocks):
+                    p, r, f1 = score_f1(postion[B], label[2*b:2*(b+1)], subtask=1)
+                    if f1 > maxf1:
+                        maxp, maxr, maxf1 = p, r, f1
+                sum_P, sum_R, sum_F1 = sum_P + maxp, sum_R + maxr, sum_F1 + maxf1
             sum_P = sum_P / batch_data.size(0)
             sum_R = sum_R / batch_data.size(0)
             sum_F1 = sum_F1 / batch_data.size(0)
@@ -196,16 +196,11 @@ def evaluate_task3(dev_loader, model):
             position = torch.cat((S_start, S_end, P_start, P_end, E_start, E_end), dim=-1)
             sum_P, sum_R, sum_F1 = 0.0, 0.0, 0.0
             for B in range(batch_data.size(0)):
-                # positon[B], batch_label[B]
-                block = len(batch_label[B])//6
                 maxp, maxr, maxf1 = 0.0, 0.0, 0.0
-                for b in range(block):
-                    if sum(batch_label[B][6*b: 6*(b+1)] == -1).item() == 6:
-                        continue
-                    p, r, f1 = score_f1(position[B], batch_label[B][6*b: 6*(b+1)], subtask=3)
-                    assert(batch_label[B][0] <= batch_label[B][1])
-                    assert(batch_label[B][2] <= batch_label[B][3])
-                    assert(batch_label[B][4] <= batch_label[B][5])
+                label = batch_label[B]
+                blocks = len(label) // 3
+                for b in range(blocks):
+                    p, r, f1 = score_f1(position[B], label[3*b: 3*(b+1)], subtask=3)
                     if f1 > maxf1:
                         maxp, maxr, maxf1 = p, r, f1
                 sum_P, sum_R, sum_F1 = sum_P + maxp, sum_R + maxr, sum_F1 + maxf1
