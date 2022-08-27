@@ -1,5 +1,4 @@
 import torch
-import json
 import jsonlines
 import numpy as np
 from transformers import BertTokenizer, MBart50Tokenizer

@@ -38,6 +38,8 @@ def train(train_loader, dev_loader, model, optimizer, scheduler, model_dir):
         train_loss = train_epoch(train_loader, model, optimizer, scheduler, epoch)
         if config.subtask == 'subtask1':
             val_metrics = evaluate_task1(dev_loader, model)
+        elif config.subtask == 'subtask2':
+            val_metrics = evaluate_task2(dev_loader, model)
         elif config.subtask == 'subtask3':
             val_metrics = evaluate_task3(dev_loader, model)
 
@@ -66,6 +68,7 @@ def train(train_loader, dev_loader, model, optimizer, scheduler, model_dir):
 
 
 def cal_f1(A_l, A_r, B):
+    print(A_l, A_r, B)
     _A = set([i for i in range(A_l, A_r + 1)])
     _B = set(B)
     _intersection = _A & _B
@@ -90,6 +93,17 @@ def score_f1(A, B, subtask):
         p1, r1, f1 = cal_f1(A[0], A[1], B[0])
         p2, r2, f2 = cal_f1(A[2], A[3], B[1])
         return (p1 + p2) / 2, (r1 + r2) / 2, (f1 + f2) / 2
+
+    elif subtask == 2:
+        for i in range(4, 12, 2):
+            if A[i] > A[i+1]:
+                A[i], A[i+1] = A[i+1], A[i]
+        sum_p, sum_r, sum_f1, count = 0.0, 0.0, 0.0, 0
+        for i in range(0, 12, 2):
+            if B[i//2]:
+                p, r, f1 = cal_f1(A[i], A[i+1], B[i//2])
+                sum_p, sum_r, sum_f1, count = sum_p + p, sum_r + r, sum_f1 + f1, count + 1
+        return sum_p/count, sum_r/count, sum_f1/count
 
     elif subtask == 3:
         if A[4] > A[5]:
@@ -173,6 +187,44 @@ def evaluate_task1(dev_loader, model):
         'recall': R / len(dev_loader),
         'F1': F1 / len(dev_loader),
     }
+
+def evaluate_task2(dev_loader, model):
+    model.eval()
+    P, R, F1 = 0.0, 0.0, 0.0
+    with torch.no_grad():
+        for idx, batch_sample in enumerate(tqdm(dev_loader)):
+
+            batch_data, batch_label = batch_sample
+            batch_mask = batch_data.gt(0)
+            outputs = model(batch_data, batch_mask)
+
+            # how to decode
+            logits = []
+            for i in range(12):
+                logits.append(torch.argmax(outputs['logits'][:, :, i], dim=-1, keepdim=True))
+            position = torch.cat(logits, dim=-1)
+            sum_P, sum_R, sum_F1 = 0.0, 0.0, 0.0
+            for B in range(batch_data.size(0)):
+                maxp, maxr, maxf1 = 0.0, 0.0, 0.0
+                label = batch_label[B]
+                blocks = len(label) // 6
+                for b in range(blocks):
+                    p, r, f1 = score_f1(position[B], label[6*b: 6*(b+1)], subtask=2)
+                    if f1 > maxf1:
+                        maxp, maxr, maxf1 = p, r, f1
+                sum_P, sum_R, sum_F1 = sum_P + maxp, sum_R + maxr, sum_F1 + maxf1
+
+            sum_P = sum_P / batch_data.size(0)
+            sum_R = sum_R / batch_data.size(0)
+            sum_F1 = sum_F1 / batch_data.size(0)
+            P, R, F1 = P + sum_P, R + sum_R, F1 + sum_F1
+
+    return {
+        'precision': P / len(dev_loader),
+        'recall': R / len(dev_loader),
+        'F1': F1 / len(dev_loader),
+    }
+
 
 
 def evaluate_task3(dev_loader, model):

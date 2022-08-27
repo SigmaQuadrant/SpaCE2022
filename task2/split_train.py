@@ -12,7 +12,7 @@ def sample():
             processed_reasons = []
             qid, context, reasons = item['qid'], item['context'], item['reasons']
             for fragments in reasons:
-                if fragments['type'] == 'C':
+                if fragments['type'] == 'B':
                     processed_reasons.append({'fragments': fragments['fragments'],
                                               'type': fragments['type']})
             if len(processed_reasons) == 0:
