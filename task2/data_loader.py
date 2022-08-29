@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import config
 from torch.utils.data import DataLoader
+
 #          train   dev
 # subtask1 1258    201
 # subtask2 910     112

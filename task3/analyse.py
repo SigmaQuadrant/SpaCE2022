@@ -4,7 +4,7 @@ import jsonlines
 
 train_dir = '../dataset/jsonl/task3_train.jsonl'
 
-# calculate
+# calculate related information
 
 with open(train_dir, 'r') as f:
     total, co_ref = 0, 0
