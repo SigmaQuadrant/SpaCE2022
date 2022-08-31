@@ -17,6 +17,7 @@ with open(original_dir, 'r') as fr:
 
 # split the train into train/dev/test
 
+
 with jsonlines.open(train_dir, 'w') as train_f:
     train_f.write_all(train)
 with jsonlines.open(dev_dir, 'w') as dev_f:

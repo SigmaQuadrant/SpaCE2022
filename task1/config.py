@@ -6,8 +6,8 @@ import torch
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default='chinese-wwm-ext')
-parser.add_argument('--lr', type=float, default=1e-5)
+parser.add_argument('--model', type=str, default='electra-large')
+parser.add_argument('--lr', type=float, default=1.2e-5)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--weight_decay', type=float, default=0.01)
@@ -20,7 +20,7 @@ jsonl_dir = '/jsonl'
 original_dir = data_dir + jsonl_dir + '/task1_train.jsonl'
 train_dir = data_dir + jsonl_dir + '/task1_train.jsonl'
 dev_dir = data_dir + jsonl_dir + '/task1_dev.jsonl'
-test_dir = data_dir + jsonl_dir + '/task1-splited-test.jsonl'
+test_dir = data_dir + jsonl_dir + '/task1_dev.jsonl'
 # train/dev/test
 
 bert_model_dir = '../pretrained_model/'

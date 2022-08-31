@@ -68,7 +68,7 @@ def train(train_loader, dev_loader, model, optimizer, scheduler, model_dir):
 
 
 def cal_f1(A_l, A_r, B):
-    print(A_l, A_r, B)
+    logging.info(A_l, A_r, B)
     _A = set([i for i in range(A_l, A_r + 1)])
     _B = set(B)
     _intersection = _A & _B

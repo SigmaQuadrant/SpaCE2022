@@ -1,17 +1,20 @@
 import torch
 import json
 import argparse
-from config import test_dir
+from config import dev_dir, prediction_dir
 
-
-def get_metric(params):
+'''
+input: prediction and answer
+output: result
+'''
+def get_metric(answer_path, prediction_path):
 
     answers, predictions = [], []
 
-    with open(params['answer_path'], 'r') as fin:
+    with open(answer_path, 'r') as fin:
         for line in fin:
             answers.append(json.loads(line))
-    with open(params['prediction_path'], 'r') as fin:
+    with open(prediction_path, 'r') as fin:
         for line in fin:
             predictions.append(json.loads(line))
 
@@ -40,12 +43,7 @@ def get_metric(params):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--answer_path', type=str, default=test_dir)
-    parser.add_argument('--prediction_path', type=str, default=test_dir)
-    # should be prediction_dir
+    answer_path = dev_dir
+    prediction_path = './ensemble_5.jsonl'
+    get_metric(answer_path, prediction_path)
 
-    args = parser.parse_args().__dict__
-    get_metric(args)
-
-    ## to be continued

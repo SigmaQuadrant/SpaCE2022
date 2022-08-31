@@ -21,7 +21,7 @@ original_dir = data_dir + jsonl_dir + '/task2_dev.jsonl'
 subtask_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_dev.jsonl'
 train_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_train.jsonl'
 dev_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_dev.jsonl'
-test_dir = data_dir + jsonl_dir + '/' + subtask + '/task2-test.jsonl'
+test_dir = data_dir + jsonl_dir + '/task2_dev.jsonl'
 
 bert_model_dir = '../pretrained_model/'
 bert_model_name = arguments['model']
@@ -41,19 +41,16 @@ epoch = 30
 patience = 0.0002
 patience_num = 5
 min_epoch_num = 5
-MLP = arguments['MLP']
+# MLP = arguments['MLP']
 
-if MLP:
-    model_dir = './experiments/' + subtask + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed) + '_MLP'
-else:
-    model_dir = './experiments/' + subtask + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed)
+subtask1_model_dir = model_dir = './experiments/' + 'subtask1' + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size)+ '_sd_' + str(seed)
+subtask2_model_dir = model_dir = './experiments/' + 'subtask2' + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size)+ '_sd_' + str(seed)
+subtask3_model_dir = model_dir = './experiments/' + 'subtask3' + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size)+ '_sd_' + str(seed)
+
+model_dir = './experiments/' + subtask + '/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size)+ '_sd_' + str(seed)
 log_dir = model_dir + '/train.log'
-prediction_dir = model_dir + '/prediction.jsonl'
+prediction_dir = './experiments/prediction.jsonl'
 
 if __name__ == '__main__':
-    print(original_dir)
-    print(train_dir)
-    print(subtask)
-    print(type(subtask))
-    print(model_dir)
-    print(log_dir)
+    print(subtask1_model_dir, subtask2_model_dir, subtask3_model_dir)
+    print(log_dir, prediction_dir)
