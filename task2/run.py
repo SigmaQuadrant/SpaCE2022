@@ -29,10 +29,7 @@ def run():
         model = DebertaReaderfortask1.from_pretrained(config.bert_model)
     elif config.subtask == 'subtask2':
         logging.info('running program for subtask2!')
-        if config.MLP:
-            model = DebertaReaderfortask2MLP.from_pretrained(config.bert_model)
-        else:
-            model = DebertaReaderfortask2.from_pretrained(config.bert_model)
+        model = DebertaReaderfortask2.from_pretrained(config.bert_model)
     elif config.subtask == 'subtask3':
         logging.info('running program for subtask3!')
         model = DebertaReaderfortask3.from_pretrained(config.bert_model)

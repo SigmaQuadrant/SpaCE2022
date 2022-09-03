@@ -15,13 +15,14 @@ from torch.utils.data import DataLoader
 
 class SpaceDataset(Dataset):
 
-    def __init__(self, file_path, config, mode: str):
+    def __init__(self, file_path, config, mode: str, subtask=None):
         self.mode = mode
         # in ['train'/'dev'/'test']
         self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
         self.device = config.device
         self.subtask = config.subtask
         self.dataset = self.preprocess(file_path)
+
 
     def preprocess(self, file_path):
 

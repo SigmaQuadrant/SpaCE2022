@@ -113,27 +113,27 @@ if __name__ == '__main__':
 
             frag2 = []
             if result2[0] != 0 and result2[1] != 0:
-                frag2.append({'role': 'S1', 'idxes': [v for v in range(result2[0] - 2, result2[1] - 1)]})
+                frag2.append({'role': 'S1', 'idxes': [v for v in range(result2[0] - 1, result2[1])]})
             if result2[2] != 0 and result2[3] != 0:
-                frag2.append({'role': 'P1', 'idxes': [v for v in range(result2[2] - 2, result2[3] - 1)]})
+                frag2.append({'role': 'P1', 'idxes': [v for v in range(result2[2] - 1, result2[3])]})
             if result2[4] != 0 and result2[5] != 0:
-                frag2.append({'role': 'E1', 'idxes': [v for v in range(result2[4] - 2, result2[5] - 1)]})
+                frag2.append({'role': 'E1', 'idxes': [v for v in range(result2[4] - 1, result2[5])]})
             if result2[6] != 0 and result2[7] != 0:
-                frag2.append({'role': 'S2', 'idxes': [v for v in range(result2[6] - 2, result2[7] - 1)]})
+                frag2.append({'role': 'S2', 'idxes': [v for v in range(result2[6] - 1, result2[7])]})
             if result2[8] != 0 and result2[9] != 0:
-                frag2.append({'role': 'P2', 'idxes': [v for v in range(result2[8] - 2, result2[9] - 1)]})
+                frag2.append({'role': 'P2', 'idxes': [v for v in range(result2[8] - 1, result2[9])]})
             if result2[10] != 0 and result2[11] != 0:
-                frag2.append({'role': 'E2', 'idxes': [v for v in range(result2[10] - 2, result2[11] - 1)]})
+                frag2.append({'role': 'E2', 'idxes': [v for v in range(result2[10] - 1, result2[11])]})
             fragment2 = {'fragments': frag2, 'type': 'B'}
             reason.append(fragment2)
 
             frag3 = []
             if result3[0] != 0 and result3[1] != 0:  # result3[0] + 8
-                frag3.append({'role': 'S', 'idxes': [v for v in range(result3[0] - 2, result3[1] - 1)]})
+                frag3.append({'role': 'S', 'idxes': [v for v in range(result3[0] - 1, result3[1])]})
             if result3[2] != 0 and result3[3] != 0:
-                frag3.append({'role': 'P', 'idxes': [v for v in range(result3[2] - 2, result3[3] - 1)]})
+                frag3.append({'role': 'P', 'idxes': [v for v in range(result3[2] - 1, result3[3])]})
             if result3[4] != 0 and result3[5] != 0:
-                frag3.append({'role': 'E', 'idxes': [v for v in range(result3[4] - 2, result3[5] - 1)]})
+                frag3.append({'role': 'E', 'idxes': [v for v in range(result3[4] - 1, result3[5])]})
             fragment3 = {'fragments': frag3, 'type': 'C'}
             reason.append(fragment3)
 
