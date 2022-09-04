@@ -32,7 +32,7 @@ def change(span: list) -> list:
     
 for task in ['subtask1', 'subtask2', 'subtask3']:
     route_path = os.path.join('dataset', 'jsonl', task)
-    file_path = os.path.join(route_path, 'task2_train_modified.jsonl')
+    file_path = os.path.join(route_path, 'task2_train.jsonl')
     output_path = os.path.join(route_path, 'task2_train_modified.jsonl')
 
     with open(file_path, 'r') as fr:
@@ -44,13 +44,13 @@ for task in ['subtask1', 'subtask2', 'subtask3']:
                 for j, element in enumerate(fragment):
                     role, text, _ = element['role'], element['text'], element['idxes']
                     element['idxes'].sort()
-                    print(element['idxes'])
+                    # print(element['idxes'])
                     if not check(element['idxes']):
                         # print('exist!')
                         reasons[i]['fragments'][j]['idxes'] = change(element['idxes'])
             items.append({'qid': qid, 'context': context, 'reasons': reasons})
 
-    # with jsonlines.open(output_path, 'w') as fw:
-    #    fw.write_all(items)
+    with jsonlines.open(output_path, 'w') as fw:
+        fw.write_all(items)
 
 

@@ -25,8 +25,8 @@ if __name__ == '__main__':
         # print(outputs.loss.item())
         with torch.no_grad():
             loss_fct = CrossEntropyLoss(reduction='mean')
-            logit = outputs.logits.squeeze()[:-1] # [len_s - 1 , vocab_size]
-            label = data.squeeze()[1:]    # [len_s - 1, 1]
+            logit = outputs.logits.squeeze()[:-1] #[len_s - 1 , vocab_size]
+            label = data.squeeze()[1:] #[len_s - 1, 1]
             # print(logit.shape, label.shape)
             # print(loss_fct(logit, label))
             perplex = torch.exp(loss_fct(logit, label))
