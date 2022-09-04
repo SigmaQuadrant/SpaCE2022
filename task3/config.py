@@ -41,9 +41,5 @@ model_dir = './experiments/' + bert_model_name + '_lr_' + str(learning_rate) + '
 log_dir = model_dir + '/train.log'
 prediction_dir = model_dir + '/prediction.jsonl'
 
-if __name__ == '__main__':
-    print(train_dir)
-    print(bert_model)
-    print(model_dir)
 
 

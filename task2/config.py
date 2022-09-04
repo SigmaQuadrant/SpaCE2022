@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--subtask', type=str, default='subtask1')
 parser.add_argument('--model', type=str, default='chinese-deberta-large')
 parser.add_argument('--lr', type=float, default=2e-5)
-parser.add_argument('--batch_size', type=int, default=12)
+parser.add_argument('--batch_size', type=int, default=1) #
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--weight_decay', type=float, default=0.01)
 parser.add_argument('--modified', action='store_true')

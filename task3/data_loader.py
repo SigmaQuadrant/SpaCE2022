@@ -8,20 +8,30 @@ import config
 from torch.utils.data import DataLoader
 
 map_6 = {
-    '说话时': 0,
-    '过去': 1,
-    '将来': 2,
-    '之时': 3,
-    '之前': 4,
-    '之后': 5
+    '说话时': 'T1',
+    '过去': 'T2',
+    '将来': 'T3',
+    '之时': 'T4',
+    '之前': 'T5',
+    '之后': 'T6'
 }
 map_17 = {
-    '远': 0,
-    '近': 1,
-    '变远': 2,
-    '变近': 3
+    '远': 'FAR',
+    '近': 'NEAR',
+    '变远': 'FARTHER',
+    '变近': 'NEARER'
 }
 
+special_token_dicts = {
+    'additional_special_tokens': [
+        'P0', 'P1', 'P2', 'P3', 'P4',
+        'P5', 'P6', 'P7', 'P8', 'P9',
+        'P10', 'P11', 'P12', 'P13', 'P14',
+        'P15', 'P16', 'P17'
+        'T1', 'T2', 'T3', 'T4', 'T5', 'T6',
+        'FAR', 'FARTHER', 'NEAR', 'NEARER', 'FALSE'
+    ]
+}
 
 class SpaceDataset(Dataset):
 
@@ -29,6 +39,8 @@ class SpaceDataset(Dataset):
         self.mode = mode
         # in ['train'/'dev'/'test']
         self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
+        self.tokenizer.add_special_tokens(special_tokens_dict=special_token_dicts)
+        self.special_token_ids = [self.tokenizer.convert_tokens_to_ids(token) for token in special_token_dicts['additional_special_tokens']]
         self.device = config.device
         self.dataset = self.preprocess(file_path)
 
@@ -40,19 +52,21 @@ class SpaceDataset(Dataset):
                 tokens = self.tokenizer.encode(item['context'])
                 corefs = [[entity['idxes'] for entity in coref] for coref in item['corefs']]
                 outputs = []
-                for triple in item['outputs']:
-                    output = []
+                for cur_n, triple in enumerate(item['outputs']):
+                    if cur_n != 0:
+                        outputs.append(self.tokenizer.sep_token_id)
                     for position, element in enumerate(triple):
                         if element is None:
-                            output.append(None)
+                            continue
                         elif type(element) == dict:
-                            output.append(element['idxes'])
+                            outputs.append(self.tokenizer.convert_tokens_to_ids('P'+str(position)))
+                            outputs.extend([self.tokenizer.convert_tokens_to_ids(char) for char in element['text']])
                         elif type(element) == str:
-                            output.append(self.mapping(position, element))
-                    outputs.append(output)
+                            outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
+                            outputs.append(self.tokenizer.convert_tokens_to_ids(self.mapping(position, element)))
 
                 if self.mode == 'test':
-                    data.append([tokens])
+                    data.append([tokens, corefs])
                 else:
                     data.append([tokens, outputs, corefs])
         return data
@@ -60,7 +74,8 @@ class SpaceDataset(Dataset):
     def __getitem__(self, idx):
         tokens = self.dataset[idx][0]
         if self.mode == 'test':
-            return [tokens]
+            corefs = self.dataset[idx][1]
+            return [tokens, corefs]
         else:
             output = self.dataset[idx][1]
             corefs = self.dataset[idx][2]
@@ -74,7 +89,8 @@ class SpaceDataset(Dataset):
         batch_data = pad_sequence([torch.from_numpy(np.array(s)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
         batch_data = torch.as_tensor(batch_data, dtype=torch.long).to(self.device)
         if self.mode == 'test':
-            return [batch_data]
+            corefs = [x[1] for x in batch]
+            return [batch_data, corefs]
         else:
             outputs = [x[1] for x in batch]
             corefs = [x[2] for x in batch]
@@ -84,7 +100,7 @@ class SpaceDataset(Dataset):
     @staticmethod
     def mapping(pos, element):
         if pos == 3 and element is not None:
-            return 0
+            return 'FALSE'
         if pos == 6:
             return map_6[element]
         if pos == 17:
@@ -92,9 +108,10 @@ class SpaceDataset(Dataset):
 
 
 if __name__ == '__main__':
-    train_dataset = SpaceDataset(config.train_dir, config, 'dev')
+    # tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
+    # tokenizer.add_special_tokens(special_tokens_dict=special_token_dicts)
+    train_dataset = SpaceDataset(config.train_dir, config, 'train')
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, collate_fn=train_dataset.collate_fn)
     for idx, item in enumerate(train_loader):
-        for batch_triple in item[1]:
-            for triple in batch_triple:
-                assert(len(triple) == 18)
+        print(item)
+        # print(tokenizer.convert_ids_to_tokens(item[1][0]))
