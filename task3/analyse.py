@@ -25,7 +25,7 @@ with open(train_dir, 'r') as f:
 
 def mu_and_sigma(A):
     mu = sum(A) / len(A)
-    sigma = math.sqrt(sum([(v - mu) * (v  - mu) for v in A]) / len(A))
+    sigma = math.sqrt(sum([(v - mu) * (v - mu) for v in A]) / len(A))
     return mu, sigma
 
 print(co_ref, total, co_ref/total)
