@@ -24,7 +24,7 @@ if arguments['modified']:
 else:
     train_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_train.jsonl'
 dev_dir = data_dir + jsonl_dir + '/' + subtask + '/task2_dev.jsonl'
-test_dir = data_dir + jsonl_dir + '/task2_dev.jsonl'# one for all
+test_dir = data_dir + jsonl_dir + '/task2_dev.jsonl' # one for all
 
 bert_model_dir = '../pretrained_model/'
 bert_model_name = arguments['model']
