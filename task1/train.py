@@ -80,8 +80,3 @@ def evaluate(dev_loader, model):
         'dev_loss': dev_loss
     }
     return final_result
-
-
-if __name__ == '__main__':
-    x = torch.zeros(2, 2)
-    # logging.info('ok ok')

@@ -29,7 +29,8 @@ special_token_dicts = {
         'P10', 'P11', 'P12', 'P13', 'P14',
         'P15', 'P16', 'P17'
         'T1', 'T2', 'T3', 'T4', 'T5', 'T6',
-        'FAR', 'FARTHER', 'NEAR', 'NEARER', 'FALSE'
+        'FAR', 'FARTHER', 'NEAR', 'NEARER', 'FALSE',
+        'SPILT'
     ]
 }
 
@@ -49,17 +50,17 @@ class SpaceDataset(Dataset):
         with open(file_path, 'r') as f:
             for idx, item in enumerate(jsonlines.Reader(f)):
 
-                tokens = self.tokenizer.encode(item['context'])
+                tokens = self.tokenizer(item['context'], return_tensors='pt').input_ids
                 corefs = [[entity['idxes'] for entity in coref] for coref in item['corefs']]
-                outputs = []
+                outputs = [self.tokenizer.cls_token_id]
                 for cur_n, triple in enumerate(item['outputs']):
                     if cur_n != 0:
-                        outputs.append(self.tokenizer.sep_token_id)
+                        outputs.append(self.tokenizer.convert_tokens_to_ids('SPILT'))
                     for position, element in enumerate(triple):
                         if element is None:
                             continue
                         elif type(element) == dict:
-                            outputs.append(self.tokenizer.convert_tokens_to_ids('P'+str(position)))
+                            outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
                             outputs.extend([self.tokenizer.convert_tokens_to_ids(char) for char in element['text']])
                         elif type(element) == str:
                             outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
@@ -86,7 +87,7 @@ class SpaceDataset(Dataset):
 
     def collate_fn(self, batch):
         sentence = [x[0] for x in batch]
-        batch_data = pad_sequence([torch.from_numpy(np.array(s)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
+        batch_data = pad_sequence([s.reshape(s.size(-1)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
         batch_data = torch.as_tensor(batch_data, dtype=torch.long).to(self.device)
         if self.mode == 'test':
             corefs = [x[1] for x in batch]
@@ -94,8 +95,9 @@ class SpaceDataset(Dataset):
         else:
             outputs = [x[1] for x in batch]
             corefs = [x[2] for x in batch]
+            outputs = pad_sequence([torch.from_numpy(np.array(o)) for o in outputs], batch_first=True, padding_value=self.tokenizer.pad_token_id)
+            outputs = torch.as_tensor(outputs, dtype=torch.long).to(self.device)
             return [batch_data, outputs, corefs]
-
 
     @staticmethod
     def mapping(pos, element):
@@ -108,10 +110,15 @@ class SpaceDataset(Dataset):
 
 
 if __name__ == '__main__':
-    # tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
-    # tokenizer.add_special_tokens(special_tokens_dict=special_token_dicts)
+    tokenizer = BertTokenizer.from_pretrained(config.bert_model)
+    tokenizer.add_special_tokens(special_tokens_dict=special_token_dicts)
     train_dataset = SpaceDataset(config.train_dir, config, 'train')
-    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, collate_fn=train_dataset.collate_fn)
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
     for idx, item in enumerate(train_loader):
-        print(item)
-        # print(tokenizer.convert_ids_to_tokens(item[1][0]))
+
+        if idx == 1:
+            break
+        batch_data, batch_label, coref = item
+        print(batch_data, batch_label)
+        print([tokenizer.convert_ids_to_tokens(id) for id in batch_label])
+

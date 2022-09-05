@@ -5,7 +5,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='chinese-bart-large')
 parser.add_argument('--lr', type=float, default=2e-5)
-parser.add_argument('--batch_size', type=int, default=12)
+parser.add_argument('--batch_size', type=int, default=10)
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--weight_decay', type=float, default=0.01)
 arguments = parser.parse_args().__dict__
