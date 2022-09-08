@@ -36,6 +36,8 @@ special_token_dicts = {
 
 class SpaceDataset(Dataset):
 
+    # train / dev different settings
+
     def __init__(self, file_path, config, mode: str):
         self.mode = mode
         # in ['train'/'dev'/'test']
@@ -47,28 +49,43 @@ class SpaceDataset(Dataset):
 
     def preprocess(self, file_path):
         data = []
-        with open(file_path, 'r') as f:
-            for idx, item in enumerate(jsonlines.Reader(f)):
+        if self.mode == 'train':
+            with open(file_path, 'r') as f:
+                for idx, item in enumerate(jsonlines.Reader(f)):
+                    tokens = self.tokenizer.convert_tokens_to_ids(list(item['context']))
+                    corefs = item['corefs']
+                    outputs = [self.tokenizer.cls_token_id]
+                    for cur_n, triple in enumerate(item['outputs']):
+                        if cur_n != 0:
+                            outputs.append(self.tokenizer.convert_tokens_to_ids('SPILT'))
+                        for position, element in enumerate(triple):
+                            if element is None:
+                                continue
+                            elif type(element) == dict:
+                                outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
+                                outputs.extend([self.tokenizer.convert_tokens_to_ids(char) for char in element['text']])
+                            elif type(element) == str:
+                                outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
+                                outputs.append(self.tokenizer.convert_tokens_to_ids(self.mapping(position, element)))
+                    # outputs.append(self.tokenizer.convert_tokens_to_ids('[EOS]'))
+                    data.append([tokens, outputs, corefs])
 
-                tokens = self.tokenizer(item['context'], return_tensors='pt').input_ids
-                corefs = [[entity['idxes'] for entity in coref] for coref in item['corefs']]
-                outputs = [self.tokenizer.cls_token_id]
-                for cur_n, triple in enumerate(item['outputs']):
-                    if cur_n != 0:
-                        outputs.append(self.tokenizer.convert_tokens_to_ids('SPILT'))
-                    for position, element in enumerate(triple):
-                        if element is None:
-                            continue
-                        elif type(element) == dict:
-                            outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
-                            outputs.extend([self.tokenizer.convert_tokens_to_ids(char) for char in element['text']])
-                        elif type(element) == str:
-                            outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
-                            outputs.append(self.tokenizer.convert_tokens_to_ids(self.mapping(position, element)))
-
-                if self.mode == 'test':
-                    data.append([tokens, corefs])
-                else:
+        elif self.mode == 'dev':
+            with open(file_path, 'r') as f:
+                for idx, item in enumerate(jsonlines.Reader(f)):
+                    tokens = self.tokenizer.convert_tokens_to_ids(list(item['context']))
+                    corefs = item['corefs']
+                    outputs = []
+                    for triple in item['outputs']:
+                        triple_18 = [None] * 18
+                        for position, element in enumerate(triple):
+                            if element is None:
+                                continue
+                            elif type(element) == dict:
+                                triple_18[position] = element['idxes']
+                            else:
+                                triple_18[position] = element
+                        outputs.append(triple_18)
                     data.append([tokens, outputs, corefs])
         return data
 
@@ -87,16 +104,20 @@ class SpaceDataset(Dataset):
 
     def collate_fn(self, batch):
         sentence = [x[0] for x in batch]
-        batch_data = pad_sequence([s.reshape(s.size(-1)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
+        batch_data = pad_sequence([torch.from_numpy(np.array(s)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
         batch_data = torch.as_tensor(batch_data, dtype=torch.long).to(self.device)
         if self.mode == 'test':
             corefs = [x[1] for x in batch]
             return [batch_data, corefs]
-        else:
+        elif self.mode == 'train':
             outputs = [x[1] for x in batch]
             corefs = [x[2] for x in batch]
             outputs = pad_sequence([torch.from_numpy(np.array(o)) for o in outputs], batch_first=True, padding_value=self.tokenizer.pad_token_id)
             outputs = torch.as_tensor(outputs, dtype=torch.long).to(self.device)
+            return [batch_data, outputs, corefs]
+        else:
+            outputs = [x[1] for x in batch]
+            corefs = [x[2] for x in batch]
             return [batch_data, outputs, corefs]
 
     @staticmethod
@@ -112,13 +133,12 @@ class SpaceDataset(Dataset):
 if __name__ == '__main__':
     tokenizer = BertTokenizer.from_pretrained(config.bert_model)
     tokenizer.add_special_tokens(special_tokens_dict=special_token_dicts)
-    train_dataset = SpaceDataset(config.train_dir, config, 'train')
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
-    for idx, item in enumerate(train_loader):
+    # train_dataset = SpaceDataset(config.train_dir, config, 'train')
+    # train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
+    dev_dataset = SpaceDataset(config.dev_dir, config, 'train')
+    dev_loader = DataLoader(dev_dataset, batch_size=10, shuffle=False, collate_fn=dev_dataset.collate_fn)
+    for idx, item in enumerate(dev_loader):
 
-        if idx == 1:
-            break
         batch_data, batch_label, coref = item
-        print(batch_data, batch_label)
-        print([tokenizer.convert_ids_to_tokens(id) for id in batch_label])
-
+        print(batch_label)
+        print([tokenizer.convert_ids_to_tokens(data) for data in batch_label])
