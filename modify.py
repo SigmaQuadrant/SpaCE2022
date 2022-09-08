@@ -2,11 +2,13 @@ import os.path
 
 import jsonlines
 
+
 def check(span: list) -> bool:
     if span[-1] - span[0] + 1 != len(span):
         return False
     else:
         return True
+
 
 def cal_f1(A: set, B: set):
     intersection = A & B
@@ -16,6 +18,7 @@ def cal_f1(A: set, B: set):
         return 0.0
     else:
         return 2 * precision * recall / (precision + recall) 
+
 
 def change(span: list) -> list:
     maxf1 = float('-inf')
@@ -29,7 +32,8 @@ def change(span: list) -> list:
                 maxf1 = cur_f1
                 L, R = l, r
     return [i for i in range(L, R + 1)]
-    
+
+
 for task in ['subtask1', 'subtask2', 'subtask3']:
     route_path = os.path.join('dataset', 'jsonl', task)
     file_path = os.path.join(route_path, 'task2_train.jsonl')
