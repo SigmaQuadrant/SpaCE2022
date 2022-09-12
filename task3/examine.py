@@ -65,7 +65,7 @@ def cal_similarity(golden_tuple, predicted_tuple, corefs, params):
                         input()
 
         if ((i == 0) or (i == 1)) and (element_sim_score == 0):  # 关键实体（空间实体）不能完全错误
-            return 0
+             return 0
 
         total_score += element_sim_score
 

@@ -3,11 +3,12 @@ import torch
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default='chinese-bart-large')
-parser.add_argument('--lr', type=float, default=2e-5)
+parser.add_argument('--model', type=str, default='cpt')
+parser.add_argument('--lr', type=float, default=1.9e-5)
 parser.add_argument('--batch_size', type=int, default=10)
-parser.add_argument('--seed', type=int, default=42)
+parser.add_argument('--seed', type=int, default=44)
 parser.add_argument('--weight_decay', type=float, default=0.01)
+parser.add_argument('--num_beams', type=int, default=1)
 arguments = parser.parse_args().__dict__
 
 data_dir = '../dataset'
@@ -24,6 +25,7 @@ bert_model = bert_model_dir + bert_model_name
 
 shuffle = True
 bert_cased = True
+num_beams = arguments['num_beams']
 device = torch.device('cuda')
 
 learning_rate = arguments['lr']
@@ -32,7 +34,7 @@ clip_grad = 5
 seed = arguments['seed']
 
 batch_size = arguments['batch_size']
-epoch = 30
+epoch = 50
 patience = 0.0002
 patience_num = 5
 min_epoch_num = 5

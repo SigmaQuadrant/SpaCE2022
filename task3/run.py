@@ -5,6 +5,7 @@ from utils import set_logger, set_seed
 from data_loader import SpaceDataset, special_token_dicts
 from torch.utils.data import DataLoader
 from transformers import BartForConditionalGeneration, BertTokenizer
+from modeling_cpt import CPTForConditionalGeneration
 from transformers.optimization import AdamW, get_cosine_schedule_with_warmup
 from train import train
 
@@ -25,7 +26,8 @@ def run():
 
     tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
     tokenizer.add_special_tokens(special_tokens_dict=special_token_dicts)
-    model = BartForConditionalGeneration.from_pretrained(config.bert_model)
+    # model = BartForConditionalGeneration.from_pretrained(config.bert_model)
+    model = CPTForConditionalGeneration.from_pretrained(config.bert_model)
     model.resize_token_embeddings(len(tokenizer))
     model.to(config.device)
     logging.info('Load Model From {}'.format(config.bert_model))

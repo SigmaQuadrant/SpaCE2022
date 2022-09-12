@@ -15,7 +15,7 @@ def decode(batch_list: list[str]) -> list[list[list]]:
         if tuple_18s.count('[PAD]'):
             end_id = tuple_18s.index('[PAD]')
         else:
-            end_id = -1
+            end_id = tuple_18s.index('[SEP]', 1)
         if end_id == -1:
             continue
         tuple_18s = tuple_18s[start_id + 1: end_id]
@@ -98,23 +98,16 @@ def text2idxes(batch_text:list, batch_generated_tuples:list) -> list:
                     continue
                 else:
                     cur_text = ''.join(e)
-                    if text.find(cur_text) != -1:# exactly match
+                    if text.find(cur_text) != -1:
                         start_position = text.find(cur_text)
                         batch_generated_tuples[ind1][ind2][ind3] = [idx for idx in range(start_position, start_position+len(cur_text))]
-                    else: # not match
-                        drop = False
+                    else:
                         last_postions_list = []
                         for char in cur_text:
-                            if last_postions_list:
-                                idx = text.find(char, last_postions_list[-1])
-                            else:
-                                idx = text.find(char)
-                            if idx == -1:
-                                drop = True
-                            else:
+                            idx = text.find(char, last_postions_list[-1]) if last_postions_list else text.find(char)
+                            if idx != -1:
                                 last_postions_list.append(idx)
-                        if not drop:
-                            batch_generated_tuples[ind1][ind2][ind3] = last_postions_list
+                        batch_generated_tuples[ind1][ind2][ind3] = last_postions_list
     return batch_generated_tuples
 
 
