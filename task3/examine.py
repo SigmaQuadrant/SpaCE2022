@@ -118,6 +118,7 @@ def main(params):
             predicted_outputs = y['outputs']
             N = len(predicted_outputs)
             if (N > 100):  # malicious submit
+                print('Warning!!!Warning!!! you have submitted over 100 tuples!')
                 continue
 
             pair_scores = np.zeros((M, N))

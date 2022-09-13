@@ -100,7 +100,7 @@ def text2idxes(batch_text:list, batch_generated_tuples:list) -> list:
                     cur_text = ''.join(e)
                     if text.find(cur_text) != -1:
                         start_position = text.find(cur_text)
-                        batch_generated_tuples[ind1][ind2][ind3] = [idx for idx in range(start_position, start_position+len(cur_text))]
+                        batch_generated_tuples[ind1][ind2][ind3] = [idx for idx in range(start_position, start_position + len(cur_text))]
                     else:
                         last_postions_list = []
                         for char in cur_text:
