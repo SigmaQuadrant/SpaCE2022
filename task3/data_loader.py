@@ -77,7 +77,7 @@ class SpaceDataset(Dataset):
                     corefs = item['corefs']
                     outputs = []
                     for triple in item['outputs']:
-                        triple_18 = [None] * 18
+                        triple_18 = [None for _ in range(18)]
                         for position, element in enumerate(triple):
                             if element is None:
                                 continue
@@ -87,6 +87,13 @@ class SpaceDataset(Dataset):
                                 triple_18[position] = element
                         outputs.append(triple_18)
                     data.append([tokens, outputs, corefs])
+
+        elif self.mode == 'test':
+            with open(file_path, 'r') as f:
+                for item in jsonlines.Reader(f):
+                    tokens = self.tokenizer.convert_tokens_to_ids(list(item['context']))
+                    corefs = item['corefs']
+                    data.append([tokens, corefs])
         return data
 
     def __getitem__(self, idx):

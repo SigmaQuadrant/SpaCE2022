@@ -2,9 +2,9 @@ import os
 import argparse
 import json
 import numpy as np
-import scipy
+from scipy import optimize
 import traceback
-
+import config
 
 def intersection_and_union(input, target):
     _input, _target = set(input), set(target)
@@ -65,7 +65,7 @@ def cal_similarity(golden_tuple, predicted_tuple, corefs, params):
                         input()
 
         if ((i == 0) or (i == 1)) and (element_sim_score == 0):  # 关键实体（空间实体）不能完全错误
-             return 0
+              return 0
 
         total_score += element_sim_score
 
@@ -73,7 +73,7 @@ def cal_similarity(golden_tuple, predicted_tuple, corefs, params):
 
 
 def KM_algorithm(pair_scores):
-    row_ind, col_ind = scipy.optimize.linear_sum_assignment(-pair_scores)  # 求负将最大和转变为最小和
+    row_ind, col_ind = optimize.linear_sum_assignment(-pair_scores)  # 求负将最大和转变为最小和
     max_score = pair_scores[row_ind, col_ind].sum()
     return max_score
 
@@ -176,8 +176,8 @@ def main(params):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--answer_path', type=str, default='./data/input/task3/task3_test.jsonl')
-    parser.add_argument('--prediction_path', type=str, default='./data/input/task3/task3_test.jsonl')
+    parser.add_argument('--answer_path', type=str, default=config.dev_dir)
+    parser.add_argument('--prediction_path', type=str, default=config.prediction_dir)
     parser.add_argument('--debug', action='store_true')
 
     args = parser.parse_args()

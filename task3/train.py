@@ -64,7 +64,7 @@ def evaluate(dev_loader, model, tokenizer):
         precision, recall, f1 = [], [], []
         for idx, batch_sample in enumerate(dev_loader):
             batch_data, batch_label, coref = batch_sample
-            ids = model.generate(batch_data, num_beams=config.num_beams, do_sample=False, max_length=200)
+            ids = model.generate(batch_data, num_beams=config.num_beams, do_sample=False, max_length=300)
             decoder_output = tokenizer.batch_decode(ids)
             # print('len of raw: {}, len_of_tuples: {}'.format(len(decoder_output), len(batch_label)))
             batch_decoder_tuples = list_to_tuple(decoder_output)

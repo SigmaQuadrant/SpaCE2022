@@ -49,7 +49,7 @@ def verify(data: list):
 
 
 def split(data: list):
-    return_tuple = [None] * 18
+    return_tuple = [None for _ in range(18)]
     for i, item in enumerate(data):
         if item[0] == 'P':
             index = int(item[1:])
