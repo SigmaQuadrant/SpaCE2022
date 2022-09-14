@@ -45,27 +45,24 @@ def generate():
 
 def search(context, main_body, element):
     if not element['idxes']:
-        return None, None
+        return None
     cur_position = element['idxes'][-1]
-    distance_l, distance_r = float('inf'), float('inf')
-    left_idxes, right_idxes = None, None
+    distance = float('inf')
+    idxes = None
     for span in main_body:
-        if span[1] < cur_position and cur_position - span[1] < distance_l:
-            distance_l = cur_position - span[1]
-            left_idxes = [_ for _ in range(span[0], span[1] + 1)]
-        if span[1] > cur_position and span[1] - cur_position < distance_r:
-            distance_r = span[1] - cur_position
-            right_idxes = [_ for _ in range(span[0], span[1] + 1)]
+        if span[1] < cur_position and cur_position - span[1] < distance:
+            distance = cur_position - span[1]
+            idxes = [_ for _ in range(span[0], span[1] + 1)]
+        if span[1] > cur_position and span[1] - cur_position < distance:
+            distance = span[1] - cur_position
+            idxes = [_ for _ in range(span[0], span[1] + 1)]
 
-    return_value1, return_value2 = None, None
-    if left_idxes is not None:
-        left_text = context[left_idxes[0]: left_idxes[-1] + 1]
-        return_value1 = {'text': left_text, 'idxes': left_idxes}
-    if right_idxes is not None:
-        right_text = context[right_idxes[0]: right_idxes[-1] + 1]
-        return_value2 = {'text': right_text, 'idxes': right_idxes}
+    return_value = None
+    if idxes is not None:
+        text = context[idxes[0]: idxes[-1] + 1]
+        return_value = {'text': text, 'idxes': idxes}
 
-    return return_value1, return_value2
+    return return_value
 
 
 if __name__ == '__main__':
@@ -95,14 +92,15 @@ if __name__ == '__main__':
                         answer_triple.append({'text': ''.join(element1), 'idxes': element2})
                 if answer_triple[0] is None:
                     continue
-                outputs.append(answer_triple)
-                enhanced_triple1, enhanced_triple2 = deepcopy(answer_triple), deepcopy(answer_triple)
-                enhanced_triple1[0], enhanced_triple2[0] = search(context, main_body, answer_triple[0])
 
-                if enhanced_triple1[0] is not None:
-                    outputs.append(enhanced_triple1)
-                if enhanced_triple2[0] is not None:
-                    outputs.append(enhanced_triple2)
+                enhanced_triple = deepcopy(answer_triple)
+                enhanced_triple[0] = search(context, main_body, answer_triple[0])
+
+                if enhanced_triple[0] is not None:
+                    outputs.append(enhanced_triple)
+                else:
+                    outputs.append(answer_triple)
+
             items.append({'qid': qid, 'context': context, 'corefs': coref, 'outputs': outputs})
 
     with jsonlines.open(config.prediction_dir, 'w') as fw:
