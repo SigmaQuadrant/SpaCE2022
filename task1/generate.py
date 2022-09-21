@@ -11,7 +11,7 @@ from transformers import ElectraForSequenceClassification
 
 def generate():
 
-    dataset = SpaceDataset(config.test_dir, config)
+    dataset = SpaceDataset(config.test_dir, config, 'test')
     logging.info('Dataset build!')
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=dataset.collate_fn)
     logging.info('Dataloader build!')
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     with open(config.test_dir, 'r') as fr:
         items = []
         for idx, item in enumerate(jsonlines.Reader(fr)):
-            context, judge = item['context'], item['judge']
+            context = item['context']
             items.append({'context': context, 'judge': int(pred_tags[idx])})
 
     # print(items)

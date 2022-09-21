@@ -30,7 +30,7 @@ class SpaceDataset(Dataset):
             data = []
             with open(file_path, "r") as fr:
                 for item in jsonlines.Reader(fr):
-                    text, reasons, labels = item['context'], item['reasons'], []
+                    text = item['context']
                     tokens = self.tokenizer.convert_tokens_to_ids(list(text))
                     if self.mode == 'train':
                         for reason in reasons:

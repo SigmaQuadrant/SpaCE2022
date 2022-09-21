@@ -3,9 +3,9 @@ import torch
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default='cpt')
+parser.add_argument('--model', type=str, default='mbart-large-50')
 parser.add_argument('--lr', type=float, default=1.9e-5)
-parser.add_argument('--batch_size', type=int, default=10)
+parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--seed', type=int, default=44)
 parser.add_argument('--weight_decay', type=float, default=0.01)
 parser.add_argument('--num_beams', type=int, default=1)
@@ -39,9 +39,9 @@ patience = 0.0002
 patience_num = 5
 min_epoch_num = 5
 
-model_dir = './experiments/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed)
+model_dir = './experiments/' + bert_model_name + '_lr_' + str(learning_rate) + '_bsz_' + str(batch_size) + '_sd_' + str(seed) + '_fix'
 log_dir = model_dir + '/train.log'
-prediction_dir = model_dir + '/prediction.jsonl'
+prediction_dir = model_dir + '/prediction_mbart.jsonl'
 
 
 

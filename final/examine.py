@@ -164,14 +164,6 @@ def main(params):
             'avg_recall': avg_recall,
         }
 
-    if (params['debug']):
-        print(status)
-        if (final_result is not None):
-            print('Micro F1 score: %f' % (final_result['micro_f1']))
-            print('Macro F1 score: %f' % (final_result['macro_f1']))
-            print('Average precision: %f' % (final_result['avg_precision']))
-            print('Average recall: %f' % (final_result['avg_recall']))
-
     return status, final_result
 
 

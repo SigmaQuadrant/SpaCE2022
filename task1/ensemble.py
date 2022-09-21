@@ -9,7 +9,7 @@ ensemble_5 = seed[:5]
 ensemble_7 = seed[:7]
 
 path = './experiments/electra-large_lr_1.2e-05_bsz_16sd'
-ensemble_result = [0] * 1602
+ensemble_result = [0] * 3152
 for seed_idx in ensemble_5:
     cur_path = path + str(seed_idx) + '/prediction.jsonl'
     with open(cur_path, 'r') as fr:
@@ -23,7 +23,7 @@ ensemble_result = [1 if v >= 3 else 0 for v in ensemble_result]
 with open(config.test_dir, 'r') as fr:
     items = []
     for idx, item in enumerate(jsonlines.Reader(fr)):
-        qid, context, judge = item['qid'], item['context'], item['judge']
+        qid, context = item['qid'], item['context']
         items.append({'qid': qid, 'context': context, 'judge': int(ensemble_result[idx])})
 
 with jsonlines.open('./ensemble_5.jsonl', 'w') as fw:

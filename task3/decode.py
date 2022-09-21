@@ -11,11 +11,11 @@ def decode(batch_list: list[str]) -> list[list[list]]:
     final_results = []
     for sample in batch_list:
         tuple_18s = list(sample.split())
-        start_id = tuple_18s.index('[CLS]')
-        if tuple_18s.count('[PAD]'):
-            end_id = tuple_18s.index('[PAD]')
+        start_id = tuple_18s.index('<s>')
+        if tuple_18s.count('<pad>'):
+            end_id = tuple_18s.index('<pad>')
         else:
-            end_id = tuple_18s.index('[SEP]', 1)
+            end_id = tuple_18s.index('</s>', 1)
         if end_id == -1:
             continue
         tuple_18s = tuple_18s[start_id + 1: end_id]

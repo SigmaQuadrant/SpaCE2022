@@ -92,13 +92,7 @@ if __name__ == '__main__':
                         answer_triple.append({'text': ''.join(element1), 'idxes': element2})
                 if answer_triple[0] is None:
                     continue
-
-                enhanced_triple = deepcopy(answer_triple)
-                enhanced_triple[0] = search(context, main_body, answer_triple[0])
-
-                if enhanced_triple[0] is not None:
-                    outputs.append(enhanced_triple)
-                else:
+                if answer_triple[0]:
                     outputs.append(answer_triple)
 
             items.append({'qid': qid, 'context': context, 'corefs': coref, 'outputs': outputs})

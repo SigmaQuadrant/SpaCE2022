@@ -20,7 +20,7 @@ jsonl_dir = '/jsonl'
 original_dir = data_dir + jsonl_dir + '/task1_train.jsonl'
 train_dir = data_dir + jsonl_dir + '/task1_train.jsonl'
 dev_dir = data_dir + jsonl_dir + '/task1_dev.jsonl'
-test_dir = data_dir + jsonl_dir + '/task1_dev.jsonl'
+test_dir = data_dir + jsonl_dir + '/task1_test.jsonl'
 # train/dev/test
 
 bert_model_dir = '../pretrained_model/'

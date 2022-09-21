@@ -7,6 +7,7 @@ import config
 from decode import list_to_tuple, text2idxes
 from scipy import optimize
 
+
 def train_epoch(train_loader, model, optimizer, scheduler, epoch):
     model.train()
     train_loss = 0.0
@@ -102,6 +103,7 @@ def intersection_and_union(input, target):
 
     return len(intersection), len(union)
 
+
 def cal_similarity(golden_tuple, predicted_tuple, corefs):
     if len(golden_tuple) != len(predicted_tuple):
         return 0
@@ -147,10 +149,12 @@ def cal_similarity(golden_tuple, predicted_tuple, corefs):
         total_score += element_sim_score
     return total_score / non_null_pair
 
+
 def KM_algorithm(pair_scores):
     row_ind, col_ind = optimize.linear_sum_assignment(-pair_scores)  # 求负将最大和转变为最小和
     max_score = pair_scores[row_ind, col_ind].sum()
     return max_score
+
 
 def get_metric(batch_prediction, batch_label, corefs):
     precision, recall, f1 = [], [], []

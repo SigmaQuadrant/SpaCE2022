@@ -9,31 +9,32 @@ from torch.utils.data import DataLoader
 
 class SpaceDataset(Dataset):
 
-    def __init__(self, file_path, config, test_flag=False):
-        self.mode = test_flag
-        if 'mbart' in config.bert_model:
-            self.tokenizer = MBart50Tokenizer.from_pretrained(config.bert_model, src_lang='zh_CN', tgt_lang='zh_CN')
-        else:
-            self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
+    def __init__(self, file_path, config, mode):
+        self.mode = mode
+        self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
         self.dataset = self.preprocess(file_path)
         self.device = config.device
 
     def preprocess(self, file_path):
         data = []
-        with open(file_path, "r") as fr:
-            for item in jsonlines.Reader(fr):
-                text = item['context']
-                tokens = self.tokenizer.encode(text)
-                if self.mode:
+        if self.mode == 'test':
+            with open(file_path, 'r') as fr:
+                for item in jsonlines.Reader(fr):
+                    text = item['context']
+                    tokens = self.tokenizer.encode(text)
                     data.append([tokens])
-                else:
+        else:
+            with open(file_path, "r") as fr:
+                for item in jsonlines.Reader(fr):
+                    text = item['context']
+                    tokens = self.tokenizer.encode(text)
                     label = 1 if item['judge'] else 0
                     data.append([tokens, label])
         return data
 
     def __getitem__(self, idx):
         tokens = self.dataset[idx][0]
-        if self.mode:
+        if self.mode == 'test':
             return [tokens]
         else:
             label = self.dataset[idx][1]
@@ -46,7 +47,7 @@ class SpaceDataset(Dataset):
         sentence = [x[0] for x in batch]
         batch_data = pad_sequence([torch.from_numpy(np.array(s)) for s in sentence], batch_first=True, padding_value=self.tokenizer.pad_token_id)
         batch_data = torch.as_tensor(batch_data, dtype=torch.long).to(self.device)
-        if self.mode:
+        if self.mode == 'test':
             return [batch_data]
         else:
             labels = [x[1] for x in batch]

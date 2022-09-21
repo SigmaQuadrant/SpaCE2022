@@ -1,7 +1,7 @@
 import torch
 import jsonlines
 import numpy as np
-from transformers import BertTokenizer
+from transformers import BertTokenizer, MBart50TokenizerFast
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import config
@@ -41,7 +41,7 @@ class SpaceDataset(Dataset):
     def __init__(self, file_path, config, mode: str):
         self.mode = mode
         # in ['train'/'dev'/'test']
-        self.tokenizer = BertTokenizer.from_pretrained(config.bert_model, do_lower_case=config.bert_cased)
+        self.tokenizer = MBart50TokenizerFast.from_pretrained(config.bert_model, do_lower_case=config.bert_cased, src_lang='zh_CN', tgt_lang='zh_CN')
         self.tokenizer.add_special_tokens(special_tokens_dict=special_token_dicts)
         self.special_token_ids = [self.tokenizer.convert_tokens_to_ids(token) for token in special_token_dicts['additional_special_tokens']]
         self.device = config.device
@@ -67,7 +67,7 @@ class SpaceDataset(Dataset):
                             elif type(element) == str:
                                 outputs.append(self.tokenizer.convert_tokens_to_ids('P' + str(position)))
                                 outputs.append(self.tokenizer.convert_tokens_to_ids(self.mapping(position, element)))
-                    # outputs.append(self.tokenizer.convert_tokens_to_ids('[EOS]'))
+                    outputs.append(self.tokenizer.convert_tokens_to_ids('[SEP]'))
                     data.append([tokens, outputs, corefs])
 
         elif self.mode == 'dev':

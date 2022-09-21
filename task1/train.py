@@ -60,9 +60,9 @@ def evaluate(dev_loader, model):
         for idx, batch_sample in enumerate(dev_loader):
             batch_data, batch_label = batch_sample
             batch_mask = batch_data.gt(0)
-            outputs = model(batch_data, batch_mask, labels=batch_label)
-            dev_loss += outputs.loss.item()
-            batch_output = outputs.logits
+            outputs = model(batch_data, batch_mask)
+            # dev_loss += outputs['loss'].item()
+            batch_output = outputs['logits']
             batch_output = batch_output.detach().cpu().numpy()
             batch_gold = batch_label.to('cpu').numpy()
             pred.extend(np.argmax(batch_output, axis=-1))
